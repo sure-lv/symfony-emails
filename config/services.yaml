@@ -1,0 +1,34 @@
+# config/services.yaml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    SureLv\Emails\:
+        resource: '../src/'
+        exclude:
+            - '../src/Config/'
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Enum/'
+            - '../src/Service/EmailsLogger.php'
+
+    # SureLv\Emails\Service\EmailsLogger:
+    #     lazy: true
+    #     arguments:
+    #         $logger: '@monolog.logger.emails_transactional'
+
+    # SureLv\Emails\Service\EmailSenderService:
+    #     arguments:
+    #         $senderAdapter: '@App\AppV2\Domain\EmailProviders\EmailSenderAdapter'
+
+    # SureLv\Emails\Service\RateLimiterService:
+    #     arguments:
+    #         $rateLimiterProvider: '@App\AppV2\Service\RateLimiterService'
+
+    # SureLv\Emails\Service\RegistryService:
+    #     lazy: true
+    #     arguments:
+    #         $config: '%emails.config%'
+    # #         $emailMessageMapper: '@App\AppV2\Domain\EmailProviders\EmailMessageMapper'
+    # #         $listMapper: '@App\AppV2\Domain\EmailProviders\ListMapper'

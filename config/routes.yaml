@@ -1,0 +1,23 @@
+# config/routes.yaml (inside the package)
+sure_lv_emails_sns:
+    path: /sns-endpoint/
+    controller: SureLv\Emails\Controller\EmailsController::snsEndpoint
+
+sure_lv_emails_unsubscribe:
+    path: /u/{memberId}/{messageId}/{payload}/{signature}/
+    controller: SureLv\Emails\Controller\EmailsController::unsubscribe
+    requirements:
+        memberId: '\d+'
+        messageId: '\d+'
+
+sure_lv_emails_track_click:
+    path: /track/c/{id}/{hash}/
+    controller: SureLv\Emails\Controller\EmailsController::trackClick
+    requirements:
+        id: '\d+'
+
+sure_lv_emails_track_open:
+    path: /track/o/{id}/{hash}/
+    controller: SureLv\Emails\Controller\EmailsController::trackOpen
+    requirements:
+        id: '\d+'

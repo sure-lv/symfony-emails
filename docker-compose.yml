@@ -1,0 +1,22 @@
+services:
+  php:
+    build: ./docker/php
+    container_name: sure-lv-emails-php
+    volumes:
+      - ./:/var/www
+    working_dir: /var/www
+    environment:
+      - APP_ENV=test
+
+  db:
+    image: mariadb:11.4
+    container_name: sure-lv-emails-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: emails_test
+      MYSQL_USER: emails
+      MYSQL_PASSWORD: emails
+
+volumes:
+  mariadb_data:
