@@ -9,7 +9,6 @@ use SureLv\Emails\Entity\EmailMessage;
 use SureLv\Emails\Entity\EmailsListMember;
 use SureLv\Emails\Entity\Job;
 use SureLv\Emails\Message\EnqueueListEmailMessage;
-use SureLv\Emails\Service\ModelService;
 
 interface ListProviderInterface
 {

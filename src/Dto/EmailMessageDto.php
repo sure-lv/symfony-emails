@@ -32,7 +32,16 @@ class EmailMessageDto
     /**
      * @var array<string, mixed>
      */
+    private array $global_context = [];
+
+    /**
+     * @var array<string, mixed>
+     */
     private array $context = [];
+
+    private ?array $html_context = null;
+
+    private ?array $plain_context = null;
 
     private string $body_html_path = '';
 
@@ -180,6 +189,39 @@ class EmailMessageDto
     }
 
     /**
+     * Set global context
+     * 
+     * @param array<string, mixed> $global_context
+     * @return self
+     */
+    public function setGlobalContext(array $global_context): self
+    {
+        $this->global_context = $global_context;
+        return $this;
+    }
+
+    /**
+     * Get global context
+     * 
+     * @return array<string, mixed>
+     */
+    public function getGlobalContext(): array
+    {
+        return $this->global_context;
+    }
+
+    public function addGlobalContextValue(string $key, mixed $value): self
+    {
+        $this->global_context[$key] = $value;
+        return $this;
+    }
+
+    public function getGlobalContextValue(string $key, mixed $default = null): mixed
+    {
+        return $this->global_context[$key] ?? $default;
+    }
+
+    /**
      * Set context
      * 
      * @param array<string, mixed> $context
@@ -200,7 +242,59 @@ class EmailMessageDto
     {
         return $this->context;
     }
-    
+
+    /**
+     * Set html context
+     * 
+     * @param array<string, mixed>|null $html_context
+     * @return self
+     */
+    public function setHtmlContext(?array $html_context): self
+    {
+        $this->html_context = $html_context;
+        return $this;
+    }
+
+    /**
+     * Get html context
+     * 
+     * @param bool $for_render
+     * @return array<string, mixed>
+     */
+    public function getHtmlContext(bool $for_render = false): array
+    {
+        if ($for_render) {
+            return array_merge($this->global_context, $this->html_context ?? $this->context);
+        }
+        return $this->html_context ?? [];
+    }
+
+    /**
+     * Set plain context
+     * 
+     * @param array<string, mixed>|null $plain_context
+     * @return self
+     */
+    public function setPlainContext(?array $plain_context): self
+    {
+        $this->plain_context = $plain_context;
+        return $this;
+    }
+
+    /**
+     * Get plain context
+     * 
+     * @param bool $for_render
+     * @return array<string, mixed>
+     */
+    public function getPlainContext(bool $for_render = false): array
+    {
+        if ($for_render) {
+            return array_merge($this->global_context, $this->plain_context ?? $this->context);
+        }
+        return $this->plain_context ?? [];
+    }
+
     public function setBodyHtmlPath(string $body_html_path): self
     {
         $this->body_html_path = $body_html_path;

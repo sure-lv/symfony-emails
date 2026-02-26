@@ -10,14 +10,12 @@
         "symfony/mailer": "^6.4|^7.0",
         "symfony/messenger": "^6.4|^7.0",
         "symfony/routing": "^6.4|^7.0",
-        "symfony/console": "^7.4",
+        "symfony/console": "^6.4|^7.0",
         "ramsey/uuid": "^4.9",
         "doctrine/dbal": "^4.4",
-        "symfony/twig-bundle": "^7.4",
-        "aws/aws-sdk-php": "^3.370"
+        "symfony/twig-bundle": "^6.4|^7.0"
     },
     "suggest": {
-        "aws/aws-sdk-php": "Required if you use AWS SES as your mailer transport",
         "symfony/rate-limiter": "Required if you want rate limiting on email sending"
     },
     "autoload": {
@@ -29,5 +27,13 @@
         "psr-4": {
             "SureLv\\Emails\\Tests\\": "tests/"
         }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "SureLv\\Emails\\Installer\\PackageInstaller::install1"
+        ],
+        "post-update-cmd": [
+            "SureLv\\Emails\\Installer\\PackageInstaller::install1"
+        ]
     }
 }

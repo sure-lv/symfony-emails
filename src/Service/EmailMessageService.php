@@ -13,7 +13,7 @@ class EmailMessageService
      */
     private array $loaded_providers = [];
 
-    public function __construct(private EmailMessageMapperInterface $emailMessageMapper, private EmailTrackingService $emailTrackingService) {}
+    public function __construct(private ?EmailMessageMapperInterface $emailMessageMapper, private EmailTrackingService $emailTrackingService) {}
 
     /**
      * Get provider instance
@@ -25,6 +25,10 @@ class EmailMessageService
     {
         if (isset($this->loaded_providers[$name])) {
             return $this->loaded_providers[$name];
+        }
+
+        if (!$this->emailMessageMapper) {
+            throw new \Exception("No email message mapper registered");
         }
 
         $provider = $this->emailMessageMapper->getProvider($name);

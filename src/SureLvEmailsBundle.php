@@ -2,6 +2,7 @@
 // src/SureLvEmailsBundle.php
 namespace SureLv\Emails;
 
+use SureLv\Emails\Compiler\InstallConfigPass;
 use SureLv\Emails\Config\EmailsConfig;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -17,18 +18,20 @@ class SureLvEmailsBundle extends AbstractBundle
     {
         $definition->rootNode()
             ->children()
-                ->scalarNode('transport')->defaultValue('smtp')
-                    ->validate()
-                        ->ifNotInArray(['ses', 'smtp'])
-                        ->thenInvalid('Invalid transport. Possible values: "ses", "smtp"')
-                    ->end()
-                ->end()
-                ->arrayNode('transport_config')
-                    ->useAttributeAsKey('name')
-                    ->variablePrototype()->end()
-                ->end()
+                // ->scalarNode('transport')->defaultValue('smtp')
+                //     ->validate()
+                //         ->ifNotInArray(['ses', 'smtp'])
+                //         ->thenInvalid('Invalid transport. Possible values: "ses", "smtp"')
+                //     ->end()
+                // ->end()
+                // ->arrayNode('transport_config')
+                //     ->useAttributeAsKey('name')
+                //     ->variablePrototype()->end()
+                // ->end()
                 ->scalarNode('url_domain')->defaultValue('')->end()
                 ->scalarNode('url_scheme')->defaultValue('https')->end()
+                ->scalarNode('from_email')->defaultValue('')->end()
+                ->scalarNode('from_email_formated')->defaultValue('')->end()
                 ->scalarNode('secret')->defaultValue('')->end()
                 ->scalarNode('table_prefix')->defaultValue('emails_')->end()
                 ->arrayNode('recipes')
@@ -74,10 +77,12 @@ class SureLvEmailsBundle extends AbstractBundle
         $container->services()
             ->set(EmailsConfig::class)
             ->args([
-                $config['transport'],
-                $config['transport_config'],
+                // $config['transport'],
+                // $config['transport_config'],
                 $config['url_domain'],
                 $config['url_scheme'],
+                $config['from_email'],
+                $config['from_email_formated'],
                 $config['secret'],
                 $config['table_prefix'],
                 $config['recipes'],
@@ -104,6 +109,13 @@ class SureLvEmailsBundle extends AbstractBundle
         if (class_exists(\Symfony\Component\RateLimiter\RateLimiterFactory::class)) {
             $container->import('../config/services/rate_limiter.yaml');
         }
+    }
+
+    public function build(ContainerBuilder $container): void
+    {
+        parent::build($container);
+        
+        $container->addCompilerPass(new InstallConfigPass());
     }
 
     public function configureRoutes(RoutingConfigurator $routes): void

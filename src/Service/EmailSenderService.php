@@ -2,27 +2,21 @@
 
 namespace SureLv\Emails\Service;
 
-use SureLv\Emails\Config\EmailsConfig;
+// use SureLv\Emails\Config\EmailsConfig;
 use SureLv\Emails\Transport as Transport;
+use Symfony\Component\Mailer\MailerInterface;
 
 class EmailSenderService
 {
     
     private Transport\TransportInterface $transport;
 
-    public function __construct(EmailsConfig $emailsConfig, EmailsLogger $logger)
+    public function __construct(MailerInterface $mailer, EmailsLogger $logger)
     {
-        $transport = $emailsConfig->transport;
-        $transportConfig = $emailsConfig->transportConfig;
-
-        if ($transport === 'ses') {
-            $this->transport = new Transport\Ses\SesTransport($transportConfig, $logger);
-        } elseif ($transport === 'smtp') {
-            $this->transport = new Transport\Smtp\SmtpTransport($transportConfig, $logger);
-        }
+        $this->transport = new Transport\MailerTransport($mailer, $logger);
     }
 
-    public function getProvider(): Transport\TransportInterface
+    public function getTransport(): Transport\TransportInterface
     {
         return $this->transport;
     }

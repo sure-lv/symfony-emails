@@ -7,10 +7,12 @@ use SureLv\Emails\Enum\EmailMessageKind;
 class EmailsConfig
 {
     public function __construct(
-        public readonly string $transport,
-        public readonly array $transportConfig,
+        // public readonly string $transport,
+        // public readonly array $transportConfig,
         public readonly string $urlDomain,
         public readonly string $urlScheme,
+        public readonly string $fromEmail,
+        public readonly string $fromEmailFormated,
         public readonly string $secret,
         public readonly string $tablePrefix,
         public readonly array  $recipes,

@@ -39,16 +39,16 @@ class SendEmailHandler
             return;
         }
 
-        $senderProvider = $this->emailSenderService->getProvider();
+        $transport = $this->emailSenderService->getTransport();
 
         $exception = null;
 
         try {
             // Send email
-            $senderProvider->send($emailMessage);
+            $transport->send($emailMessage);
 
             // Get message ID
-            $senderMessageId = $senderProvider->getMessageId();
+            $senderMessageId = $transport->getMessageId();
             
             // Update message as sent
             $emailMessageModel->updateAsSent($emailMessage->getId(), $senderMessageId ?? '');

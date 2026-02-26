@@ -8,10 +8,15 @@ services:
         resource: '../src/'
         exclude:
             - '../src/Config/'
+            - '../src/Controller/'
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Enum/'
             - '../src/Service/EmailsLogger.php'
+
+    SureLv\Emails\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
 
     # SureLv\Emails\Service\EmailsLogger:
     #     lazy: true

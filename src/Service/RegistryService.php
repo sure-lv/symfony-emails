@@ -6,8 +6,6 @@ namespace SureLv\Emails\Service;
 use SureLv\Emails\Config\EmailsConfig;
 use SureLv\Emails\Entity\Recipe;
 use SureLv\Emails\Enum\JobKind;
-use SureLv\Emails\Mapper\EmailMessageMapperInterface;
-use SureLv\Emails\Mapper\ListMapperInterface;
 
 class RegistryService
 {
@@ -31,10 +29,8 @@ class RegistryService
      * Constructor
      * 
      * @param EmailsConfig $emailsConfig
-     * @param EmailMessageMapperInterface $emailMessageMapper
-     * @param ListMapperInterface $listMapper
      */
-    public function __construct(private EmailsConfig $emailsConfig, private EmailMessageMapperInterface $emailMessageMapper, private ListMapperInterface $listMapper)
+    public function __construct(private EmailsConfig $emailsConfig)
     {        
         // Recipes
         foreach ($emailsConfig->recipes as $recipeType => $typeRecipes) {
@@ -56,6 +52,16 @@ class RegistryService
                 }
             }
         }
+    }
+
+    /**
+     * Get emails config
+     * 
+     * @return EmailsConfig
+     */
+    public function getEmailsConfig(): EmailsConfig
+    {
+        return $this->emailsConfig;
     }
 
     /**
@@ -163,26 +169,6 @@ class RegistryService
     public function getMessageOnListMemberStatusChange(): ?string
     {
         return $this->emailsConfig->messageOnListMemberStatusChange;
-    }
-
-    /**
-     * Get email message mapper
-     * 
-     * @return EmailMessageMapperInterface
-     */
-    public function getEmailMessageMapper(): EmailMessageMapperInterface
-    {
-        return $this->emailMessageMapper;
-    }
-
-    /**
-     * Get list mapper
-     * 
-     * @return ListMapperInterface
-     */
-    public function getListMapper(): ListMapperInterface
-    {
-        return $this->listMapper;
     }
     
 }

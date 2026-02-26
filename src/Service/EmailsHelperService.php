@@ -2,10 +2,22 @@
 
 namespace SureLv\Emails\Service;
 
+use SureLv\Emails\Config\EmailsConfig;
+
 class EmailsHelperService
 {
 
     public function __construct(private RegistryService $registryService) {}
+
+    /**
+     * Get emails config
+     * 
+     * @return EmailsConfig
+     */
+    public function getEmailsConfig(): EmailsConfig
+    {
+        return $this->registryService->getEmailsConfig();
+    }
 
     /**
      * Get payload token

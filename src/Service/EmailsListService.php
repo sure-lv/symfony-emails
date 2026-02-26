@@ -9,7 +9,7 @@ use SureLv\Emails\Provider\List\ListProviderInterface;
 final class EmailsListService
 {
 
-    public function __construct(private ListMapperInterface $listMapper) {}
+    public function __construct(private ?ListMapperInterface $listMapper) {}
 
     /**
      * Get the list provider
@@ -19,6 +19,10 @@ final class EmailsListService
      */
     public function getProvider(string $name): ListProviderInterface
     {
+        if (!$this->listMapper) {
+            throw new \Exception("No list mapper registered");
+        }
+        
         $provider = $this->listMapper->getProvider($name); /** @var \SureLv\Emails\Provider\List\ListProviderInterface $provider */
         if (!$provider instanceof ListProviderInterface) {
             throw new \InvalidArgumentException("No list provider registered for: {$name}");

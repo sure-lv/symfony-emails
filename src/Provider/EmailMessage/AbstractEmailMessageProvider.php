@@ -14,10 +14,17 @@ use SureLv\Emails\Service\EmailTrackingService;
 use SureLv\Emails\Service\ModelService;
 use Symfony\Component\DependencyInjection\ParameterBag\ContainerBagInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Service\Attribute\Required;
 use Twig\Environment;
 
 abstract class AbstractEmailMessageProvider implements EmailMessageProviderInterface
 {
+
+    protected ModelService $modelService;
+    protected EmailsHelperService $emailsHelperService;
+    protected ContainerBagInterface $containerBag;
+    protected Environment $twig;
+    protected UrlGeneratorInterface $urlGenerator;
 
     /**
      * @var array<string, mixed>
@@ -26,7 +33,20 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
 
     protected ?EmailTrackingService $email_tracking_service = null;
 
-    public function __construct(protected ModelService $modelService, protected EmailsHelperService $emailsHelperService, protected ContainerBagInterface $containerBag, protected Environment $twig, protected UrlGeneratorInterface $urlGenerator) {}
+    #[Required]
+    public function setModuleDependencies(
+        ModelService $modelService,
+        EmailsHelperService $emailsHelperService,
+        ContainerBagInterface $containerBag,
+        Environment $twig,
+        UrlGeneratorInterface $urlGenerator,
+    ): void {
+        $this->modelService = $modelService;
+        $this->emailsHelperService = $emailsHelperService;
+        $this->containerBag = $containerBag;
+        $this->twig = $twig;
+        $this->urlGenerator = $urlGenerator;
+    }
 
     /**
      * Initialize the provider
@@ -74,8 +94,19 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
                 $emailMessageDto->setFromEmail($this->getFromEmail(true));
             }
 
+            // Set context
+            $this->setGlobalContext($emailMessageDto);
+
+            // Update request locale
+            if ($emailMessageDto->getGlobalContextValue('_locale')) {
+                $this->urlGenerator->getContext()->setParameter('_locale', $emailMessageDto->getGlobalContextValue('_locale'));
+            }
+
             // Set email message variables (unsubscribe link, etc.)
             $this->setEmailMessageVariables($emailMessageDto);
+
+            // Set unsubscribe link to global context
+            $emailMessageDto->addGlobalContextValue('unsubscribe_link', $emailMessageDto->getDataValue('unsubscribe_link'));
 
             // Set headers
             if ($emailMessageDto->getDataValue('x_entity_ref_id')) {
@@ -85,14 +116,6 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
                 $emailMessageDto->addHeader('List-Unsubscribe', '<' . $emailMessageDto->getDataValue('unsubscribe_link') . '>');
                 $emailMessageDto->addHeader('List-Unsubscribe-Post', 'List-Unsubscribe=One-Click');
             }
-
-            // Set context
-            $context = $emailMessageDto->getContext();
-            if (!isset($context['title'])) {
-                $context['title'] = $emailMessageDto->getSubject();
-            }
-            $context['unsubscribe_link'] = $emailMessageDto->getDataValue('unsubscribe_link');
-            $emailMessageDto->setContext($context);
 
             // Set template metadata
             $emailMessage = $emailMessageDto->getEmailMessage();
@@ -106,14 +129,14 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
                 $emailMessage->setHeaders($emailMessageDto->getHeaders());
             }
             if (!empty($emailMessageDto->getBodyHtmlPath())) {
-                $emailMessage->setBodyHtml($this->renderTemplate($emailMessageDto->getBodyHtmlPath(), $emailMessageDto->getContext()));
+                $emailMessage->setBodyHtml($this->renderTemplate($emailMessageDto->getBodyHtmlPath(), $emailMessageDto->getHtmlContext(true)));
             } elseif (!empty($emailMessageDto->getBodyHtml())) {
-                $emailMessage->setBodyHtml($this->updateMessageBodyWithContext($emailMessageDto->getBodyHtml(), $emailMessageDto->getContext()));
+                $emailMessage->setBodyHtml($this->updateMessageBodyWithContext($emailMessageDto->getBodyHtml(), $emailMessageDto->getHtmlContext(true)));
             }
             if (!empty($emailMessageDto->getBodyPlainPath())) {
-                $emailMessage->setBodyPlain($this->renderTemplate($emailMessageDto->getBodyPlainPath(), $emailMessageDto->getContext()));
+                $emailMessage->setBodyPlain($this->renderTemplate($emailMessageDto->getBodyPlainPath(), $emailMessageDto->getPlainContext(true)));
             } elseif (!empty($emailMessageDto->getBodyPlain())) {
-                $emailMessage->setBodyPlain($this->updateMessageBodyWithContext($emailMessageDto->getBodyPlain(), $emailMessageDto->getContext()));
+                $emailMessage->setBodyPlain($this->updateMessageBodyWithContext($emailMessageDto->getBodyPlain(), $emailMessageDto->getPlainContext(true)));
             }
 
             // Add tracking to html
@@ -183,7 +206,7 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
      */
     public function saveMessage(EmailMessage $emailMessage): void
     {
-        $emailMessageModel = $this->modelService->getModel(EmailMessageModel::class); /** @var \SureLv\Emails\Model\EmailMessageModel $emailMessageModel */
+        $emailMessageModel = $this->modelService->getModel(EmailMessageModel::class); /** @var \App\Domain\Emails\Model\EmailMessageModel $emailMessageModel */
         $emailMessageModel->update($emailMessage);
     }
 
@@ -259,6 +282,16 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
     }
 
     /**
+     * Set global context
+     * 
+     * @param EmailMessageDto $emailMessageDto
+     * @return void
+     */
+    protected function setGlobalContext(EmailMessageDto $emailMessageDto): void
+    {
+    }
+
+    /**
      * Helper to render Twig templates with error handling
      * 
      * @param string $templatePath
@@ -302,9 +335,14 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
     protected function getFromEmail(bool $formated = false): string
     {
         if ($formated) {
-            return $this->containerBag->get('info_email_formated');
+            $email = $this->emailsHelperService->getEmailsConfig()->fromEmailFormated;
+        } else {
+            $email = $this->emailsHelperService->getEmailsConfig()->fromEmail;
         }
-        return $this->containerBag->get('info_email');
+        if (empty($email)) {
+            throw new \RuntimeException('From email is not configured');
+        }
+        return $email;
     }
 
     /**

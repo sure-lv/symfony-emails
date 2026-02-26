@@ -16,7 +16,7 @@ use SureLv\Emails\Service\EmailStatusUpdater;
 use SureLv\Emails\Service\ModelService;
 use Aws\Sns\Message;
 use Aws\Sns\MessageValidator;
-use Psr\Log\LoggerInterface;
+use SureLv\Emails\Service\EmailsLogger;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,15 +25,15 @@ use Symfony\Component\Messenger\MessageBusInterface;
 class EmailsController
 {
 
-    public function snsEndpoint(Request $request, LoggerInterface $logger, EmailStatusUpdater $emailStatusUpdater): Response
+    public function snsEndpoint(Request $request, EmailsLogger $logger, EmailStatusUpdater $emailStatusUpdater): Response
 	{
 		// $message = '{"Type":"SubscriptionConfirmation","MessageId":"74a666f6-8e16-425e-b1af-2641d7007f69","Token":"2336412f37fb687f5d51e6e2425c464de1288763e7fc93be780aa845a32644c931f8cb8f8d9cc96d0cc4d5869f38a600a9ed0f7e76054f6003ea2044d59be3a359b90c734da41316863f110bfbd1579837e18f73f891ac2c688df79af04d762d992a1b46071b42a03f391ce135a2851d6ff4615140bf718703e5cdfe3187b529","TopicArn":"arn:aws:sns:us-west-2:343407400825:SESGenecyNotifications","Message":"You have chosen to subscribe to the topic arn:aws:sns:us-west-2:343407400825:SESGenecyNotifications.\nTo confirm the subscription, visit the SubscribeURL included in this message.","SubscribeURL":"https://sns.us-west-2.amazonaws.com/?Action=ConfirmSubscription&TopicArn=arn:aws:sns:us-west-2:343407400825:SESGenecyNotifications&Token=2336412f37fb687f5d51e6e2425c464de1288763e7fc93be780aa845a32644c931f8cb8f8d9cc96d0cc4d5869f38a600a9ed0f7e76054f6003ea2044d59be3a359b90c734da41316863f110bfbd1579837e18f73f891ac2c688df79af04d762d992a1b46071b42a03f391ce135a2851d6ff4615140bf718703e5cdfe3187b529","Timestamp":"2023-04-16T18:27:31.932Z","SignatureVersion":"1","Signature":"42RizeqS+oASivma9D19TPbPPv0lAX5sllsWzlleRTlq9AyliPZeqqn8upnJFAUFh1f3qaaFPh4ehjTAclri0B5hEoTltVqz5QR9v7LgiEmEmZzGR27wgz5Gv4uq6tMfAAq4DRpVPb2vn5iM+uVmA4DPcCxiWEdICj0Kb7XXwSAg7oEg1dCxQWYfUt1PUE06dhHE08Qz9HVkzdn6jyudtLuCdMqDiV1IQXjihJzaMu8Zv6PttfzAe8KqiGymGSNrr7PTWd+rCOAUaDtghZy/Hr1OIMUxb+HIzjnO36+ChWI+FcQv9bZ4myztPb+er63sfIrK8p+YMXotxHOfIoZFIA==","SigningCertURL":"https://sns.us-west-2.amazonaws.com/SimpleNotificationService-56e67fcb41f6fec09b0196692625d385.pem"}';
 		// $message = Message::fromJsonString($message);
-		$logger->info('SNS email endpoint called', array('request' => $request->request->all()));
+		$logger->logInfo('SNS email endpoint called', array('request' => $request->request->all()));
 		try {
 			$message = Message::fromRawPostData();
 		} catch (\Exception $e) {
-			$logger->critical('Invalid POST data', array('exception' => $e->getMessage()));
+			$logger->logCritical('Invalid POST data', array('exception' => $e->getMessage()));
 			return new Response('Invalid POST data', 400);
 		}
 
@@ -41,7 +41,7 @@ class EmailsController
 		try {
 			$validator->validate($message);
 		} catch (\Exception $e) {
-			$logger->critical('Invalid SNS message', array('exception' => $e->getMessage()));
+			$logger->logCritical('Invalid SNS message', array('exception' => $e->getMessage()));
 			return new Response('Invalid message', 400);
 		}
 
@@ -49,17 +49,17 @@ class EmailsController
 
 			case 'SubscriptionConfirmation':
 				file_get_contents($message['SubscribeURL']);
-				$logger->info('SNS subscription confirmed', array('message' => $message));
+				$logger->logInfo('SNS subscription confirmed', array('message' => $message));
 				break;
 
 			case 'Notification':
 				$notification = json_decode($message['Message'], true);
 				if (!is_array($notification) || !isset($notification['eventType'])) {
-					$logger->critical('Invalid SNS notification', array('message' => $message['Message']));
+					$logger->logCritical('Invalid SNS notification', array('message' => $message['Message']));
 					return new Response('Invalid notification', 400);
 				}
 				$eventType = $notification['eventType'];
-				$logger->info('SNS notification', array('eventType' => $eventType, 'notification' => $notification));
+				$logger->logInfo('SNS notification', array('eventType' => $eventType, 'notification' => $notification));
 				$mailData = $notification['mail'] ?? [];
 				if ($eventType === 'Bounce') {
 					$emailStatusUpdater->handleBounce($notification['bounce'] ?? [], $mailData);
@@ -71,7 +71,7 @@ class EmailsController
 				break;
             
 			default:
-				$logger->critical('Unknown SNS message type', array('message' => $message));
+				$logger->logCritical('Unknown SNS message type', array('message' => $message));
 				return new Response('Unknown message type', 400);
             
 		}

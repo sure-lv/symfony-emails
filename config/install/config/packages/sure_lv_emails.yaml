@@ -1,9 +1,0 @@
-sure_lv_emails:
-    transport: 'ses' # or 'smtp'
-    url_domain: ''
-    url_scheme: 'https'
-    secret: '%env(APP_SECRET)%'
-    table_prefix: 'emails_'
-    recipes:
-        transactional: []
-        list: []
