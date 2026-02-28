@@ -16,20 +16,24 @@ use SureLv\Emails\Model\ContactModel;
 use SureLv\Emails\Model\EmailsListModel;
 use SureLv\Emails\Model\TypeUnsubscribeModel;
 use SureLv\Emails\Service\ModelService;
+use Symfony\Contracts\Service\Attribute\Required;
 
 abstract class AbstractListProvider implements ListProviderInterface
 {
+
+    protected ModelService $modelService;
 
     /**
      * @var array<int, string>
      */
     protected array $contact_email_updates = [];
 
-    /**
-     * Constructor
-     * 
-     */
-    public function __construct(protected ModelService $modelService) {}
+    #[Required]
+    public function setModuleDependencies(
+        ModelService $modelService,
+    ): void {
+        $this->modelService = $modelService;
+    }
 
     /**
      * Validate the list job

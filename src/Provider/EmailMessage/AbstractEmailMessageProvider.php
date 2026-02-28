@@ -206,7 +206,7 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
      */
     public function saveMessage(EmailMessage $emailMessage): void
     {
-        $emailMessageModel = $this->modelService->getModel(EmailMessageModel::class); /** @var \App\Domain\Emails\Model\EmailMessageModel $emailMessageModel */
+        $emailMessageModel = $this->modelService->getModel(EmailMessageModel::class); /** @var \SureLv\Emails\Model\EmailMessageModel $emailMessageModel */
         $emailMessageModel->update($emailMessage);
     }
 
