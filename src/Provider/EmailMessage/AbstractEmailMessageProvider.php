@@ -86,20 +86,20 @@ abstract class AbstractEmailMessageProvider implements EmailMessageProviderInter
                 return false;
             }
 
-            // Call child class implementation
-            $this->buildMessage($emailMessageDto);
-
-            // Set from email
-            if (empty($emailMessageDto->getFromEmail())) {
-                $emailMessageDto->setFromEmail($this->getFromEmail(true));
-            }
-
             // Set context
             $this->setGlobalContext($emailMessageDto);
 
             // Update request locale
             if ($emailMessageDto->getGlobalContextValue('_locale')) {
                 $this->urlGenerator->getContext()->setParameter('_locale', $emailMessageDto->getGlobalContextValue('_locale'));
+            }
+
+            // Call child class implementation
+            $this->buildMessage($emailMessageDto);
+
+            // Set from email
+            if (empty($emailMessageDto->getFromEmail())) {
+                $emailMessageDto->setFromEmail($this->getFromEmail(true));
             }
 
             // Set email message variables (unsubscribe link, etc.)
